@@ -40,6 +40,17 @@ SD.registerParser(w3cParser);
 module.exports = {
   source: ["tokens.json"],
   platforms: {
+    css: {
+      transformGroup: "css",
+      buildPath: "build/css/",
+      files: [
+        {
+          destination: "variables.css",
+          format: "css/variables",
+          // filter: "removePrivate",
+        },
+      ],
+    },
     scss: {
       transformGroup: "scss",
       buildPath: "build/scss/",
@@ -55,16 +66,6 @@ module.exports = {
         {
           destination: "_map-deep.scss",
           format: "scss/map-deep",
-        },
-      ],
-    },
-    css: {
-      transformGroup: "css",
-      buildPath: "build/css/",
-      files: [
-        {
-          destination: "variables.css",
-          format: "css/variables",
         },
       ],
     },

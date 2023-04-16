@@ -13,10 +13,11 @@ const w3cCompositeTokenSpec = {
   border: {
     color: "color",
     width: "dimension",
-    style: "strokeStyle", // ! strokeStyle is actually a composite token
+    style: "strokeStyle",
   },
   gradient: {
     // Note, $value is actually an array of the following
+    // How to attach type to individual points?
     color: "color",
     position: "", // 0, decimal, 1 -- greater than 1 = 1, less than 0 = 0
   },
@@ -82,6 +83,8 @@ exports.w3cParser = {
           expandedToken[key] = {
             value,
             $type: w3cCompositeTokenSpec?.[token.$type]?.[key],
+            // In platform.<type>.files[], set `filter: 'removePrivate` to omit expanded tokens
+            private: true,
           };
         }
 
