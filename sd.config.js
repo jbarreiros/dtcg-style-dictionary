@@ -1,14 +1,50 @@
 const SD = require("style-dictionary");
-// const StyleDictionary = require("style-dictionary-utils");
+const originalAttributeCtiTransform = SD.transform["attribute/cti"].transformer;
+
+// Composite token transforms
 
 SD.registerTransform({
   type: "value",
   transitive: true,
   name: "w3c/composite/border",
-  matcher: (token) => token.type === "border",
+  matcher: (token) => token.$type === "border",
   transformer: ({ value }) => `${value.width} ${value.style} ${value.color}`,
 });
 
+// Overwrite "attribute/cti" to remap CTI attributes based on $type
+SD.registerTransform({
+  type: "attribute",
+  name: "attribute/cti",
+  transformer: (token) => {
+    const attributes = originalAttributeCtiTransform(token);
+
+    switch (token.$type) {
+      case "color":
+        attributes.category = "color";
+        break;
+      case "dimension":
+        attributes.category = "size";
+        // This is a bit of hack to determine whether or not the token
+        // relates to a font dimension.
+        if (token.path.includes("font")) {
+          attributes.type = "font";
+        }
+        break;
+      case "fontFamily":
+        attributes.category = "font";
+        break;
+      case "duration":
+        attributes.category = "time";
+        break;
+      default:
+        break;
+    }
+
+    return attributes;
+  },
+});
+
+// Parser to convert w3c tokens to Style Dictionary tokens
 SD.registerParser({
   pattern: /\.json$/,
   parse: ({ filePath, contents }) => {
@@ -51,19 +87,29 @@ SD.registerParser({
           };
         }
 
-        token[" "] = {
+        token["@"] = {
           $type: token.$type,
           value: token.value,
         };
-        // token.composite = token.value;
+
         delete token.value;
       }
     }
 
     walk(tokens);
-    console.log("final tokens...", tokens.theme);
+    // console.log("final tokens...", tokens.theme);
     return tokens;
   },
+});
+
+// Append composite token transforms into predefined transform groups
+["css", "js", "scss"].forEach((name) => {
+  // Temp: wanted to test with size/pxToRem
+  // Is it better to add custom/css, etc.?
+  const sizeRemTransformIndex = SD.transformGroup[name].findIndex((v) => v === "size/rem");
+  SD.transformGroup[name][sizeRemTransformIndex] = "size/pxToRem";
+
+  SD.transformGroup[name] = [...SD.transformGroup[name], "w3c/composite/border"];
 });
 
 module.exports = {
