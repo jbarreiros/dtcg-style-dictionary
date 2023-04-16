@@ -5,6 +5,7 @@ const {
   compositeShadow,
   compositeTypography,
   typeFontFamily,
+  typeCubicBezier,
 } = require("./src/transforms");
 const { w3cParser } = require("./src/parser");
 
@@ -12,6 +13,7 @@ SD.registerTransform(attributeCti);
 SD.registerTransform(compositeBorder);
 SD.registerTransform(compositeShadow);
 SD.registerTransform(compositeTypography);
+SD.registerTransform(typeCubicBezier);
 SD.registerTransform(typeFontFamily);
 SD.registerParser(w3cParser);
 
@@ -30,6 +32,7 @@ SD.registerParser(w3cParser);
     "w3c/composite/css/border",
     "w3c/composite/css/shadow",
     "w3c/composite/css/typography",
+    "w3c/type/css/cubicBezier",
     "w3c/type/css/fontFamily",
   ];
 });

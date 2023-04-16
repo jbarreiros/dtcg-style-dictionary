@@ -61,7 +61,7 @@ exports.compositeBorder = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/border",
-  matcher: (token) => token.$type === "border",
+  matcher: ({ $type }) => $type === "border",
   transformer: ({ value }) => `${value.width} ${value.style} ${value.color}`,
 };
 
@@ -69,7 +69,7 @@ exports.compositeShadow = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/shadow",
-  matcher: (token) => token.$type === "shadow",
+  matcher: ({ $type }) => $type === "shadow",
   transformer: ({ value }) => `${value.x || 0} ${value.y || 0} ${value.blur || 0} ${value.spread || 0} ${value.color}`,
 };
 
@@ -77,7 +77,7 @@ exports.compositeTypography = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/typography",
-  matcher: (token) => token.$type === "typography",
+  matcher: ({ $type }) => $type === "typography",
   transformer: ({ value }) =>
     [
       value?.fontStyle,
@@ -94,17 +94,24 @@ exports.compositeTypography = {
  *
  * The following types do not need special handling:
  * - color
- * - cubicBezier  ?? maybe, css = `cubic-bezier(#,#,#,#)`, other platforms??
  * - dimension
  * - duration
  * - fontWeight
  */
 
+exports.typeCubicBezier = {
+  type: "value",
+  transitive: true,
+  name: "w3c/type/css/cubicBezier",
+  matcher: ({ $type, value }) => $type === "cubicBezier" && Array.isArray(value),
+  transformer: ({ value }) => `cubic-bezier(${x1}, ${y1}, ${x2}, ${y2})`,
+};
+
 exports.typeFontFamily = {
   type: "value",
   transitive: true,
   name: "w3c/type/css/fontFamily",
-  matcher: (token) => token.$type === "fontFamily" && Array.isArray(token.value),
+  matcher: ({ $type, value }) => $type === "fontFamily" && Array.isArray(value),
   transformer: ({ value }) => {
     const families = value.map((family) => (/\s/g.test(family) ? `"${family}"` : family));
     return families.join(", ");
