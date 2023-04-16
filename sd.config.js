@@ -11,6 +11,8 @@ SD.registerTransform({
   transformer: ({ value }) => `${value.width} ${value.style} ${value.color}`,
 });
 
+//TODO typography
+
 // Overwrite "attribute/cti" to remap CTI attributes based on $type
 SD.registerTransform({
   type: "attribute",
@@ -66,6 +68,11 @@ SD.registerParser({
 
     const w3cCompositeTokenSpec = {
       // TODO add other composites
+      border: {
+        color: "color",
+        width: "dimension",
+        style: "strokeStyle", // ! strokeStyle is actually a composite token
+      },
       typography: {
         fontFamily: "fontFamily",
         fontSize: "dimension",
@@ -95,33 +102,30 @@ SD.registerParser({
       // I think yes, so that transforms are applied to individual bits.
       // Or, should composite tokens always be references (i.e. no transforms)?
       if (isComposite(token.$type)) {
-        const tokenClone = {};
+        const expandedToken = {};
 
         for (const [key, value] of Object.entries(token.value)) {
-          tokenClone[key] = { value };
-
-          // TODO test
-          tokenClone[key].$type = w3cCompositeTokenSpec[token.$type][key];
+          expandedToken[key] = {
+            value,
+            $type: w3cCompositeTokenSpec?.[token.$type]?.[key],
+          };
         }
 
         // The "@" is a hack. SD doesn't include it in the final token name.
         // It's a way to get a token name that is the same as its parent.
-        tokenClone["@"] = {
-          $type: token.$type,
-          value: token.value,
-        };
+        expandedToken["@"] = { ...token };
 
         // This is probably really dangerous.
         // Make the current token a parent (i.e. has no value), fully replacing
         // its contents with the new expanded tokens. Any extra properties in
         // the this new parent might show up in the final generated files.
         Object.keys(token).forEach((key) => delete token[key]);
-        Object.keys(tokenClone).forEach((key) => (token[key] = { ...tokenClone[key] }));
+        Object.keys(expandedToken).forEach((key) => (token[key] = { ...expandedToken[key] }));
       }
     }
 
     walk(tokens);
-    // console.log("final tokens...", tokens.theme);
+    console.log("final tokens...", tokens.theme.border);
     return tokens;
   },
 });
