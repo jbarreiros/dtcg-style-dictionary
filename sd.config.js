@@ -61,8 +61,19 @@ SD.registerParser({
     }
 
     function isComposite(type) {
-      return ["typography", "shadow"].includes(type);
+      return ["border", "gradient", "typography", "shadow", "strokeStyle", "transition"].includes(type);
     }
+
+    const w3cCompositeTokenSpec = {
+      // TODO add other composites
+      typography: {
+        fontFamily: "fontFamily",
+        fontSize: "dimension",
+        fontWeight: "fontWeight",
+        letterSpacing: "dimension",
+        lineHeight: "",
+      },
+    };
 
     // Iterate over tokens, looking for composite tokens.
     // Composite token parts are inserted as their own tokens.
@@ -79,20 +90,33 @@ SD.registerParser({
         return;
       }
 
+      // TODO should this be a setting?
+      // Should composite tokens be exploded?
+      // I think yes, so that transforms are applied to individual bits.
+      // Or, should composite tokens always be references (i.e. no transforms)?
       if (isComposite(token.$type)) {
+        const tokenClone = {};
+
         for (const [key, value] of Object.entries(token.value)) {
-          token[key] = {
-            value,
-            $type: key,
-          };
+          tokenClone[key] = { value };
+
+          // TODO test
+          tokenClone[key].$type = w3cCompositeTokenSpec[token.$type][key];
         }
 
-        token["@"] = {
+        // The "@" is a hack. SD doesn't include it in the final token name.
+        // It's a way to get a token name that is the same as its parent.
+        tokenClone["@"] = {
           $type: token.$type,
           value: token.value,
         };
 
-        delete token.value;
+        // This is probably really dangerous.
+        // Make the current token a parent (i.e. has no value), fully replacing
+        // its contents with the new expanded tokens. Any extra properties in
+        // the this new parent might show up in the final generated files.
+        Object.keys(token).forEach((key) => delete token[key]);
+        Object.keys(tokenClone).forEach((key) => (token[key] = { ...tokenClone[key] }));
       }
     }
 
