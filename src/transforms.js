@@ -7,17 +7,7 @@ exports.attributeCti = {
   type: "attribute",
   name: "w3c/attribute/cti",
   transformer: (token) => {
-    const { attributes } = token;
-
-    if (!attributes || !attributes.category) {
-      console.error(
-        chalk.red(
-          'Token is missing CTI attributes. Transform "w3c/attribute/cti" expects "attribute/cti" to have been run.'
-        )
-      );
-
-      return {};
-    }
+    const { attributes = {} } = token;
 
     switch (token.$type) {
       case "color":
@@ -62,7 +52,7 @@ exports.compositeBorder = {
   transitive: true,
   name: "w3c/composite/css/border",
   matcher: ({ $type }) => $type === "border",
-  transformer: ({ value }) => `${value.width} ${value.style} ${value.color}`,
+  transformer: ({ value }) => [value.width, value.style, value.color].filter(Boolean).join(" "),
 };
 
 exports.compositeShadow = {

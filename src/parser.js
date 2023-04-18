@@ -72,10 +72,7 @@ exports.w3cParser = {
         return;
       }
 
-      // TODO should this be a setting?
-      // Should composite tokens be exploded?
-      // I think yes, so that transforms are applied to individual bits.
-      // Or, should composite tokens always be references (i.e. no transforms)?
+      // TODO make original $value properties aliases to the exploded tokens
       if (isComposite(token.$type)) {
         const expandedToken = {};
 
