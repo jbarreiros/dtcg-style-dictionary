@@ -99,7 +99,7 @@ exports.w3cParser = {
     }
 
     walk(tokens);
-    console.log("final tokens...", tokens.theme.border);
+    // console.log("final tokens...", tokens.theme.border);
     return tokens;
   },
 };
