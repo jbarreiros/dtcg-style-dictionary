@@ -2,12 +2,19 @@ function isObject(item) {
   return typeof item === "object" && !Array.isArray(item) && item !== null;
 }
 
-function isComposite(type) {
-  return ["border", "gradient", "typography", "shadow", "strokeStyle", "transition"].includes(type);
+function isGroup(token) {
+  return !token.hasOwnProperty("value");
+}
+
+function isComposite(token) {
+  return (
+    ["border", "gradient", "typography", "shadow", "strokeStyle", "transition"].includes(token.$type) &&
+    isObject(token.value)
+  );
 }
 
 /**
- * For mapping w3c token value properties to a w3c value type.
+ * For mapping w3c composite token value properties to a w3c value type.
  */
 const w3cCompositeTokenSpec = {
   border: {
@@ -35,66 +42,116 @@ const w3cCompositeTokenSpec = {
   transition: {
     duration: "duration",
     delay: "duration",
-    timingFunction: "cubicBezier", // [P1x, P1y, P2x, P2y] (plain numbers, not dimensions)
+    timingFunction: "cubicBezier",
   },
   typography: {
     fontFamily: "fontFamily",
     fontSize: "dimension",
     fontWeight: "fontWeight",
-    letterSpacing: "dimension",
+    letterSpacing: "dimension", // ? tricky tricky
     lineHeight: "",
   },
 };
 
+/**
+ * Migrates w3c-formatted design tokens into tokens that Style Dictionary can process.
+ *
+ * Rename property names:
+ * - $value -> value
+ * - $description -> comment
+ *
+ * Expand composite tokens into individual tokens, and update its child values
+ * to use aliases:
+ * {
+ *   border: {
+ *     thin: {
+ *       $type: 'border',
+ *       value: {
+ *         width: "1px",
+ *         color: "black"
+ *       }
+ *     }
+ *   }
+ * }
+ * ⬆️ becomes ⬇️
+ * {
+ *   border: {
+ *     thin: {
+ *       width: { value: '1px', $type: 'dimension' },
+ *       color: { value: 'black', $type: 'color' },
+ *       @: {
+ *         $type: 'border'
+ *         value: {
+ *           width: { value: '{border.thin.width}' },
+ *           color: { value: '{border.thin.color}' }
+ *         }
+ *       }
+ *     }
+ *   }
+ * }
+ *
+ * Config:
+ * - For composite tokens, all of those new tokens will be included in the final deliverables.
+ *   To omit them, set `platform.<type>.files[{ filter: 'removePrivate' }, ...]`.
+ */
 exports.w3cParser = {
   pattern: /\.json|\.tokens\.json|\.tokens$/,
   parse: ({ filePath, contents }) => {
-    // Rename "$value" and "$description" to "value" and "comment"
+    // Rename w3c property names to their equivalent Style Dictionary names
     const preparedContent = (contents || "{}")
       .replace(/"\$?value"\s*:/g, '"value":')
       .replace(/"\$?description"\s*:/g, '"comment":');
 
-    // Convert to JSON
+    // Convert JSON string to object
     const tokens = JSON.parse(preparedContent);
 
-    // Iterate over tokens, looking for composite tokens.
-    // Composite token parts are inserted as their own tokens.
-    function walk(token) {
+    // Track where we are in the tree.
+    const path = [];
+
+    // Recursive function to iterate over all tokens
+    function walk(token, key) {
       if (!isObject(token)) {
         return;
       }
 
-      if (!token.hasOwnProperty("value")) {
-        for (const nextToken of Object.values(token)) {
-          walk(nextToken);
+      if (isGroup(token)) {
+        for (const [nextKey, nextToken] of Object.entries(token)) {
+          path.push(nextKey);
+          walk(nextToken, nextKey);
+          path.pop();
         }
 
         return;
       }
 
-      // TODO make original $value properties aliases to the exploded tokens
-      if (isComposite(token.$type)) {
-        const expandedToken = {};
+      if (isComposite(token)) {
+        const childTokens = {};
+        const childAliases = {};
 
+        // Create new tokens for each child value
         for (const [key, value] of Object.entries(token.value)) {
-          expandedToken[key] = {
+          childTokens[key] = {
             value,
-            $type: w3cCompositeTokenSpec?.[token.$type]?.[key],
-            // In platform.<type>.files[], set `filter: 'removePrivate` to omit expanded tokens
+            $type: w3cCompositeTokenSpec[token.$type][key],
             private: true,
           };
+
+          childAliases[key] = `{${[...path, key].join(".")}}`;
         }
 
-        // The "@" is a hack. SD doesn't include it in the final token name.
-        // It's a way to get a token name that is the same as its parent.
-        expandedToken["@"] = { ...token };
+        // Create a new composite token, copying over all properties from the original
+        // and setting its child values to aliases.
+        // Note, the "@" key is a hack. SD doesn't include it in the final token name.
+        childTokens["@"] = {
+          ...token,
+          value: childAliases,
+        };
 
-        // This is probably really dangerous.
-        // Make the current token a parent (i.e. has no value), fully replacing
-        // its contents with the new expanded tokens. Any extra properties in
-        // the this new parent might show up in the final generated files.
+        // Remove all properties from the original token
         Object.keys(token).forEach((key) => delete token[key]);
-        Object.keys(expandedToken).forEach((key) => (token[key] = { ...expandedToken[key] }));
+
+        // Repopulate the original token
+        Object.keys(childTokens).forEach((key) => (token[key] = { ...childTokens[key] }));
       }
     }
 

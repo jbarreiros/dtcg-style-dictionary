@@ -47,6 +47,7 @@ exports.attributeCti = {
  * - transition
  */
 
+// value: { width, style, color }
 exports.compositeBorder = {
   type: "value",
   transitive: true,
@@ -55,14 +56,18 @@ exports.compositeBorder = {
   transformer: ({ value }) => [value.width, value.style, value.color].filter(Boolean).join(" "),
 };
 
+// value: { offsetX, offsetY, blur, spread, color }
 exports.compositeShadow = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/shadow",
   matcher: ({ $type }) => $type === "shadow",
-  transformer: ({ value }) => [value.x, value.y, value.blur, value.spread, value.color].filter(Boolean).join(" "),
+  transformer: ({ value }) =>
+    [value.offsetX, value.offsetY, value.blur, value.spread, value.color].filter(Boolean).join(" "),
 };
 
+// value: { fontStyle, fontWeight, fontSize, lineHeight, fontFamily}
+// FIXME also includes letterSpacing
 exports.compositeTypography = {
   type: "value",
   transitive: true,
