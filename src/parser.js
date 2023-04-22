@@ -51,17 +51,17 @@ function isComposite(token) {
   );
 }
 
-function* getCompositeValues(value, step = undefined) {
-  if (Array.isArray(value)) {
-    for (const [i, val] of value.entries()) {
-      yield* getCompositeValues(val, i + 1);
+function* getCompositeValues(tokenValue, step = undefined) {
+  if (Array.isArray(tokenValue)) {
+    for (const [index, value] of tokenValue.entries()) {
+      yield* getCompositeValues(value, index);
     }
 
     return;
   }
 
-  for (const [key, val] of Object.entries(value)) {
-    yield [key, val, step];
+  for (const [key, value] of Object.entries(tokenValue)) {
+    yield [key, value, step];
   }
 }
 
@@ -138,12 +138,17 @@ exports.w3cParser = {
       }
 
       if (isComposite(token)) {
-        const childTokens = {};
-        const childAliases = {};
+        const tokenValueIsArray = Array.isArray(token.value);
 
-        // Create new tokens
+        // Create a new "value" property where each relevant value is an alias
+        // to one of the new tokens we will be creating next.
+        const tokenValueWithAliases = tokenValueIsArray ? Array.from({ length: token.value.length }, Object) : {};
+
+        // For every value property, create a new token.
+        const childTokens = {};
+
         for (const [key, value, step] of getCompositeValues(token.value)) {
-          const childTokenName = `${step ? `${step}-` : ""}${key}`;
+          const childTokenName = `${tokenValueIsArray ? `${step + 1}-` : ""}${key}`;
 
           childTokens[childTokenName] = {
             value,
@@ -151,17 +156,20 @@ exports.w3cParser = {
             intermediate: true,
           };
 
-          // FIXME Should the shape of childAliases always match the token's
-          // orginal value? Value arrays (like gradient) are collapsed into a
-          // key/value pair object.
-          childAliases[childTokenName] = `{${[...path, childTokenName].join(".")}}`;
+          const tokenAlias = `{${[...path, childTokenName].join(".")}}`;
+
+          if (tokenValueIsArray) {
+            tokenValueWithAliases[step][key] = tokenAlias;
+          } else {
+            tokenValueWithAliases[key] = tokenAlias;
+          }
         }
 
         // Create a new composite token, copying over all properties from the original
         // and setting its child values to aliases.
         childTokens["@"] = {
           ...token,
-          value: childAliases,
+          value: tokenValueWithAliases,
         };
 
         // Remove all properties from the original token

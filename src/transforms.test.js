@@ -65,8 +65,13 @@ describe("w3c/composite/css/border", () => {
 
 describe("w3c/composite/css/gradient", () => {
   test.each([
-    // prettier-ignore
-    [{ "1-color": "#0000ff", "1-position": 0, "2-color": "#ff0000", "2-position": 1 }, "#0000ff, #ff0000"],
+    [
+      [
+        { color: "#0000ff", position: 0.6 },
+        { color: "#ff0000", position: 1 },
+      ],
+      "#0000ff 60%, #ff0000 100%",
+    ],
   ])("transform %j", (value, expected) => {
     const token = { value };
     expect(compositeGradient.transformer(token)).toBe(expected);

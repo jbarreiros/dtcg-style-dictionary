@@ -52,6 +52,7 @@ exports.attributeCti = {
  */
 
 // value: { color, width, style }
+// css -> border: <width> <style> <color>;
 exports.compositeBorder = {
   type: "value",
   transitive: true,
@@ -60,24 +61,18 @@ exports.compositeBorder = {
   transformer: ({ value }) => [value.width, value.style, value.color].filter(Boolean).join(" "),
 };
 
-// value: { color1, position1, color2, ... } (position = [0,1])
-// Note, this function expects the custom parser to have converted the array of
-// values into a flat key/value pair object.
-// This function also assumes that the steps are ordered (does not sort by position).
+// value: [ { color, position }, ... ]
+// css -> `background: linear-gradient(<direction>, <color1> <position1>, ...);
 exports.compositeGradient = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/gradient",
-  matcher: ({ $type, value }) => $type === "gradient" && typeof value === "object",
-  transformer: ({ value }) => {
-    return Object.entries(value)
-      .map(([key, val]) => (key.endsWith("color") ? val : undefined))
-      .filter(Boolean)
-      .join(", ");
-  },
+  matcher: ({ $type, value }) => $type === "gradient" && Array.isArray(value),
+  transformer: ({ value }) => value.map(({ color, position }) => `${color} ${(position * 100).toFixed(0)}%`).join(", "),
 };
 
 // value: { color, offsetX, offsetY, blur, spread }
+// css -> box-shadow: <offset-x> <offset-y> <blur-radius> <spread-radius> <color>;
 exports.compositeShadow = {
   type: "value",
   transitive: true,
@@ -102,6 +97,7 @@ exports.compositeTransition = {
 };
 
 // value: { fontFamily, fontSize, fontWeight, letterSpacing, lineHeight }
+// css -> font: <weight> <size>/<line-height> <family>;
 exports.compositeTypography = {
   type: "value",
   transitive: true,
