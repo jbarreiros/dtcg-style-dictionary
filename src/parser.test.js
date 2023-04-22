@@ -43,17 +43,17 @@ describe("parser", () => {
       width: {
         $type: "dimension",
         value: "1px",
-        private: true,
+        intermediate: true,
       },
       style: {
         $type: "strokeStyle",
         value: "solid",
-        private: true,
+        intermediate: true,
       },
       color: {
         $type: "color",
         value: "rebeccapurple",
-        private: true,
+        intermediate: true,
       },
       "@": {
         $type: "border",
@@ -94,27 +94,27 @@ describe("parser", () => {
       offsetX: {
         $type: "dimension",
         value: "0.5",
-        private: true,
+        intermediate: true,
       },
       offsetY: {
         $type: "dimension",
         value: "0.5",
-        private: true,
+        intermediate: true,
       },
       blur: {
         $type: "dimension",
         value: "1.5",
-        private: true,
+        intermediate: true,
       },
       spread: {
         $type: "dimension",
         value: "0",
-        private: true,
+        intermediate: true,
       },
       color: {
         $type: "color",
         value: "#00000088",
-        private: true,
+        intermediate: true,
       },
       "@": {
         $type: "shadow",

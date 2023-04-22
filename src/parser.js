@@ -1,16 +1,9 @@
-function isObject(item) {
-  return typeof item === "object" && !Array.isArray(item) && item !== null;
+function isObject(val) {
+  return typeof val === "object" && !Array.isArray(val) && val !== null;
 }
 
 function isGroup(token) {
   return !token.hasOwnProperty("value");
-}
-
-function isComposite(token) {
-  return (
-    ["border", "gradient", "typography", "shadow", "strokeStyle", "transition"].includes(token.$type) &&
-    isObject(token.value)
-  );
 }
 
 /**
@@ -23,10 +16,8 @@ const w3cCompositeTokenSpec = {
     style: "strokeStyle",
   },
   gradient: {
-    // Note, $value is actually an array of the following
-    // How to attach type to individual points?
     color: "color",
-    position: "", // 0, decimal, 1 -- greater than 1 = 1, less than 0 = 0
+    position: undefined,
   },
   shadow: {
     color: "color",
@@ -36,8 +27,8 @@ const w3cCompositeTokenSpec = {
     spread: "dimension",
   },
   strokeStyle: {
-    // $value = string stroke value
-    // or $value = { dashArray: "dimension", lineCap: "" }
+    dashArray: "dimension",
+    lineCap: undefined,
   },
   transition: {
     duration: "duration",
@@ -48,10 +39,31 @@ const w3cCompositeTokenSpec = {
     fontFamily: "fontFamily",
     fontSize: "dimension",
     fontWeight: "fontWeight",
-    letterSpacing: "dimension", // ? tricky tricky
-    lineHeight: "",
+    letterSpacing: "dimension",
+    lineHeight: undefined,
   },
 };
+
+function isComposite(token) {
+  return (
+    Object.keys(w3cCompositeTokenSpec).includes(token.$type) &&
+    (typeof token.value === "object" || Array.isArray(token.value))
+  );
+}
+
+function* getCompositeValues(value, step = undefined) {
+  if (Array.isArray(value)) {
+    for (const [i, val] of value.entries()) {
+      yield* getCompositeValues(val, i + 1);
+    }
+
+    return;
+  }
+
+  for (const [key, val] of Object.entries(value)) {
+    yield [key, val, step];
+  }
+}
 
 /**
  * Migrates w3c-formatted design tokens into tokens that Style Dictionary can process.
@@ -79,7 +91,7 @@ const w3cCompositeTokenSpec = {
  *     thin: {
  *       width: { value: '1px', $type: 'dimension' },
  *       color: { value: 'black', $type: 'color' },
- *       @: {
+ *       COMPOSITE: {
  *         $type: 'border'
  *         value: {
  *           width: { value: '{border.thin.width}' },
@@ -90,9 +102,10 @@ const w3cCompositeTokenSpec = {
  *   }
  * }
  *
- * Config:
- * - For composite tokens, all of those new tokens will be included in the final deliverables.
- *   To omit them, set `platform.<type>.files[{ filter: 'removePrivate' }, ...]`.
+ * Note, when processing $value, there are some assumptions:
+ * - $value is an object, e.g. `{a:1, b:1, ...}`
+ * - $value is an array, e.g. `[{a:1, ...}, {a:2, ...}]`
+ * - Within $value, there are no nesting objects or arrays.
  */
 exports.w3cParser = {
   pattern: /\.json|\.tokens\.json|\.tokens$/,
@@ -128,20 +141,24 @@ exports.w3cParser = {
         const childTokens = {};
         const childAliases = {};
 
-        // Create new tokens for each child value
-        for (const [key, value] of Object.entries(token.value)) {
-          childTokens[key] = {
+        // Create new tokens
+        for (const [key, value, step] of getCompositeValues(token.value)) {
+          const childTokenName = `${step ? `${step}-` : ""}${key}`;
+
+          childTokens[childTokenName] = {
             value,
             $type: w3cCompositeTokenSpec[token.$type][key],
-            private: true,
+            intermediate: true,
           };
 
-          childAliases[key] = `{${[...path, key].join(".")}}`;
+          // FIXME Should the shape of childAliases always match the token's
+          // orginal value? Value arrays (like gradient) are collapsed into a
+          // key/value pair object.
+          childAliases[childTokenName] = `{${[...path, childTokenName].join(".")}}`;
         }
 
         // Create a new composite token, copying over all properties from the original
         // and setting its child values to aliases.
-        // Note, the "@" key is a hack. SD doesn't include it in the final token name.
         childTokens["@"] = {
           ...token,
           value: childAliases,
@@ -156,7 +173,7 @@ exports.w3cParser = {
     }
 
     walk(tokens);
-    // console.log("final tokens...", tokens.theme.border);
+    // console.log("final tokens...", tokens.composite.gradient["blue-to-red"]);
     return tokens;
   },
 };

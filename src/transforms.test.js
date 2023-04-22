@@ -6,6 +6,9 @@ const {
   compositeTypography,
   typeCubicBezier,
   typeFontFamily,
+  compositeStrokeStyle,
+  compositeTransition,
+  compositeGradient,
 } = require("./transforms");
 
 describe("w3c/attribute/cti", () => {
@@ -60,17 +63,41 @@ describe("w3c/composite/css/border", () => {
   });
 });
 
+describe("w3c/composite/css/gradient", () => {
+  test.each([
+    // prettier-ignore
+    [{ "1-color": "#0000ff", "1-position": 0, "2-color": "#ff0000", "2-position": 1 }, "#0000ff, #ff0000"],
+  ])("transform %j", (value, expected) => {
+    const token = { value };
+    expect(compositeGradient.transformer(token)).toBe(expected);
+  });
+});
+
 describe("w3c/composite/css/shadow", () => {
   test.each([
-    [{ x: "60px", y: "-16px", color: "teal" }, "60px -16px teal"],
-    [{ x: "10px", y: "5px", blur: "5px", color: "black" }, "10px 5px 5px black"],
+    [{ offsetX: "60px", offsetY: "-16px", color: "teal" }, "60px -16px teal"],
+    [{ offsetX: "10px", offsetY: "5px", blur: "5px", color: "black" }, "10px 5px 5px black"],
     [
-      { x: "2px", y: "2px", blur: "2px", spread: "1px", color: "rgba(0, 0, 0, 0.2)" },
+      { offsetX: "2px", offsetY: "2px", blur: "2px", spread: "1px", color: "rgba(0, 0, 0, 0.2)" },
       "2px 2px 2px 1px rgba(0, 0, 0, 0.2)",
     ],
   ])("transforms %j", (value, expected) => {
     const token = { value };
     expect(compositeShadow.transformer(token)).toBe(expected);
+  });
+});
+
+// TODO strokeStyle
+
+describe("w3c/composite/css/transition", () => {
+  test.each([
+    [{ duration: "4s" }, "4s"],
+    [{ duration: "4s", delay: "1s" }, "4s 1s"],
+    [{ duration: "4s", timingFunction: [0.5, 0, 1, 1] }, "4s 0.5,0,1,1"],
+    [{ duration: "4s", timingFunction: [0.5, 0, 1, 1], delay: "1s" }, "4s 0.5,0,1,1 1s"],
+  ])("transforms %j", (value, expected) => {
+    const token = { value };
+    expect(compositeTransition.transformer(token)).toBe(expected);
   });
 });
 

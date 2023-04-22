@@ -42,44 +42,73 @@ exports.attributeCti = {
  * The following tranforms are for converting composite tokens into a single value.
  *
  * TODO:
- * - gradient
  * - strokeStyle
- * - transition
+ *  - challenge: $value is a string or object
+ *
+ * FIXME:
+ * - typography has an extra letterSpacing property...
+ *  - available as its own token, but...
+ *  - how does it work when using an alias to a typography token?
  */
 
-// value: { width, style, color }
+// value: { color, width, style }
 exports.compositeBorder = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/border",
-  matcher: ({ $type }) => $type === "border",
+  matcher: ({ $type, value }) => $type === "border" && typeof value === "object",
   transformer: ({ value }) => [value.width, value.style, value.color].filter(Boolean).join(" "),
 };
 
-// value: { offsetX, offsetY, blur, spread, color }
+// value: { color1, position1, color2, ... } (position = [0,1])
+// Note, this function expects the custom parser to have converted the array of
+// values into a flat key/value pair object.
+// This function also assumes that the steps are ordered (does not sort by position).
+exports.compositeGradient = {
+  type: "value",
+  transitive: true,
+  name: "w3c/composite/css/gradient",
+  matcher: ({ $type, value }) => $type === "gradient" && typeof value === "object",
+  transformer: ({ value }) => {
+    return Object.entries(value)
+      .map(([key, val]) => (key.endsWith("color") ? val : undefined))
+      .filter(Boolean)
+      .join(", ");
+  },
+};
+
+// value: { color, offsetX, offsetY, blur, spread }
 exports.compositeShadow = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/shadow",
-  matcher: ({ $type }) => $type === "shadow",
+  matcher: ({ $type, value }) => $type === "shadow" && typeof value === "object",
   transformer: ({ value }) =>
     [value.offsetX, value.offsetY, value.blur, value.spread, value.color].filter(Boolean).join(" "),
 };
 
-// value: { fontStyle, fontWeight, fontSize, lineHeight, fontFamily}
-// FIXME also includes letterSpacing
+exports.compositeStrokeStyle = {
+  //TODO
+};
+
+// value: { duration, timingFunction, delay }
+// css -> `transition: <property> <duration> <timing-function> <delay>;`
+exports.compositeTransition = {
+  type: "value",
+  transitive: true,
+  name: "w3c/composite/css/transition",
+  matcher: ({ $type, value }) => $type === "transition" && typeof value === "object",
+  transformer: ({ value }) => [value.duration, value.timingFunction, value.delay].filter(Boolean).join(" "),
+};
+
+// value: { fontFamily, fontSize, fontWeight, letterSpacing, lineHeight }
 exports.compositeTypography = {
   type: "value",
   transitive: true,
   name: "w3c/composite/css/typography",
-  matcher: ({ $type }) => $type === "typography",
+  matcher: ({ $type, value }) => $type === "typography" && typeof value === "object",
   transformer: ({ value }) =>
-    [
-      value.fontStyle,
-      value.fontWeight,
-      `${value.fontSize}${value.lineHeight ? `/${value.lineHeight}` : ""}`,
-      value.fontFamily,
-    ]
+    [value.fontWeight, `${value.fontSize}${value.lineHeight ? `/${value.lineHeight}` : ""}`, value.fontFamily]
       .filter(Boolean)
       .join(" "),
 };
