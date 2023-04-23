@@ -2,13 +2,13 @@ const SD = require("style-dictionary");
 const {
   attributeCti,
   compositeBorder,
+  compositeGradient,
   compositeShadow,
+  compositeStrokeStyle,
+  compositeTransition,
   compositeTypography,
   typeCubicBezier,
   typeFontFamily,
-  compositeStrokeStyle,
-  compositeTransition,
-  compositeGradient,
 } = require("./transforms");
 
 describe("w3c/attribute/cti", () => {

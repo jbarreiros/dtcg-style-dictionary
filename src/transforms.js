@@ -1,5 +1,3 @@
-const chalk = require("chalk");
-
 /**
  * Adds: category, and type on the attributes object based on the token's $type.
  */
@@ -40,15 +38,6 @@ exports.attributeCti = {
 
 /**
  * The following tranforms are for converting composite tokens into a single value.
- *
- * TODO:
- * - strokeStyle
- *  - challenge: $value is a string or object
- *
- * FIXME:
- * - typography has an extra letterSpacing property...
- *  - available as its own token, but...
- *  - how does it work when using an alias to a typography token?
  */
 
 // value: { color, width, style }
@@ -117,6 +106,7 @@ exports.compositeTypography = {
  * - dimension
  * - duration
  * - fontWeight
+ * - number
  */
 
 // value: [P1x, P1y, P2x, P2y] (x = [0,1], y = [-∞,∞])

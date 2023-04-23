@@ -1,15 +1,15 @@
 const SD = require("style-dictionary");
+const { w3cParser } = require("./src/parser");
 const {
   attributeCti,
   compositeBorder,
   compositeGradient,
   compositeShadow,
-  compositeTypography,
-  typeFontFamily,
-  typeCubicBezier,
   compositeTransition,
+  compositeTypography,
+  typeCubicBezier,
+  typeFontFamily,
 } = require("./src/transforms");
-const { w3cParser } = require("./src/parser");
 
 SD.registerTransform(attributeCti);
 SD.registerTransform(compositeBorder);
@@ -21,16 +21,10 @@ SD.registerTransform(typeCubicBezier);
 SD.registerTransform(typeFontFamily);
 SD.registerParser(w3cParser);
 
-// Append composite token transforms into predefined transform groups
 ["css", "js", "scss"].forEach((name) => {
   // Replace 'attribute/cti' with custom
   const attributeCtiTransformIndex = SD.transformGroup[name].findIndex((v) => v === "attribute/cti");
   SD.transformGroup[name].splice(attributeCtiTransformIndex, 1, "w3c/attribute/cti");
-
-  // Temp: wanted to test with size/pxToRem
-  // Is it better to add custom/css, etc.?
-  const sizeRemTransformIndex = SD.transformGroup[name].findIndex((v) => v === "size/rem");
-  SD.transformGroup[name][sizeRemTransformIndex] = "size/pxToRem";
 
   SD.transformGroup[name] = [
     ...SD.transformGroup[name],
@@ -42,8 +36,6 @@ SD.registerParser(w3cParser);
     "w3c/type/css/cubicBezier",
     "w3c/type/css/fontFamily",
   ];
-
-  // console.log(SD.transformGroup[name]);
 });
 
 module.exports = {

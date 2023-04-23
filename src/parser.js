@@ -1,15 +1,6 @@
-function isObject(val) {
-  return typeof val === "object" && !Array.isArray(val) && val !== null;
-}
-
-function isGroup(token) {
-  return !token.hasOwnProperty("value");
-}
-
-/**
- * For mapping w3c composite token value properties to a w3c value type.
- */
-const w3cCompositeTokenSpec = {
+// Mapping of composite token values to token types.
+// Note, "undefined" means the spec does not define a type.
+const compositeTokenTypeMap = {
   border: {
     color: "color",
     width: "dimension",
@@ -20,10 +11,10 @@ const w3cCompositeTokenSpec = {
     position: undefined,
   },
   shadow: {
+    blur: "dimension",
     color: "color",
     offsetX: "dimension",
     offsetY: "dimension",
-    blur: "dimension",
     spread: "dimension",
   },
   strokeStyle: {
@@ -31,8 +22,8 @@ const w3cCompositeTokenSpec = {
     lineCap: undefined,
   },
   transition: {
-    duration: "duration",
     delay: "duration",
+    duration: "duration",
     timingFunction: "cubicBezier",
   },
   typography: {
@@ -40,17 +31,23 @@ const w3cCompositeTokenSpec = {
     fontSize: "dimension",
     fontWeight: "fontWeight",
     letterSpacing: "dimension",
-    lineHeight: undefined,
+    lineHeight: "number",
   },
 };
 
-function isComposite(token) {
-  return (
-    Object.keys(w3cCompositeTokenSpec).includes(token.$type) &&
-    (typeof token.value === "object" || Array.isArray(token.value))
-  );
+function isTokenGroup(token) {
+  return !token.hasOwnProperty("value");
 }
 
+function isCompositeToken(token) {
+  return Object.keys(compositeTokenTypeMap).includes(token.$type) && typeof token.value === "object";
+}
+
+/**
+ * Iterate over a composite token's value.
+ * For an object, each object property is yielded.
+ * For an array, each array item is yielded.
+ */
 function* getCompositeValues(tokenValue, step = undefined) {
   if (Array.isArray(tokenValue)) {
     for (const [index, value] of tokenValue.entries()) {
@@ -66,7 +63,8 @@ function* getCompositeValues(tokenValue, step = undefined) {
 }
 
 /**
- * Migrates w3c-formatted design tokens into tokens that Style Dictionary can process.
+ * Migrates design tokens following the Design Tokens Community Group specification
+ * into a format that Style Dictionary can process.
  *
  * Rename property names:
  * - $value -> value
@@ -75,27 +73,29 @@ function* getCompositeValues(tokenValue, step = undefined) {
  * Expand composite tokens into individual tokens, and update its child values
  * to use aliases:
  * {
- *   border: {
- *     thin: {
- *       $type: 'border',
- *       value: {
- *         width: "1px",
- *         color: "black"
+ *   "border": {
+ *     "thin": {
+ *       "$type": "border",
+ *       "$description": "Thin border",
+ *       "value": {
+ *         "width": "1px",
+ *         "color": "black"
  *       }
  *     }
  *   }
  * }
  * ⬆️ becomes ⬇️
  * {
- *   border: {
- *     thin: {
- *       width: { value: '1px', $type: 'dimension' },
- *       color: { value: 'black', $type: 'color' },
- *       COMPOSITE: {
- *         $type: 'border'
- *         value: {
- *           width: { value: '{border.thin.width}' },
- *           color: { value: '{border.thin.color}' }
+ *   "border": {
+ *     "thin": {
+ *       "width": { "value": "1px", "$type": "dimension" },
+ *       "color": { "value": "black", "$type": "color" },
+ *       "@"": {
+ *         "$type": "border",
+ *         "comment": "Thin border",
+ *         "value": {
+ *           "width": { "value": "{border.thin.width}" },
+ *           "color": { "value": "{border.thin.color}" }
  *         }
  *       }
  *     }
@@ -110,7 +110,7 @@ function* getCompositeValues(tokenValue, step = undefined) {
 exports.w3cParser = {
   pattern: /\.json|\.tokens\.json|\.tokens$/,
   parse: ({ filePath, contents }) => {
-    // Rename w3c property names to their equivalent Style Dictionary names
+    // Rename "$" property names to their equivalent Style Dictionary names
     const preparedContent = (contents || "{}")
       .replace(/"\$?value"\s*:/g, '"value":')
       .replace(/"\$?description"\s*:/g, '"comment":');
@@ -123,11 +123,7 @@ exports.w3cParser = {
 
     // Recursive function to iterate over all tokens
     function walk(token, key) {
-      if (!isObject(token)) {
-        return;
-      }
-
-      if (isGroup(token)) {
+      if (isTokenGroup(token)) {
         for (const [nextKey, nextToken] of Object.entries(token)) {
           path.push(nextKey);
           walk(nextToken, nextKey);
@@ -137,51 +133,56 @@ exports.w3cParser = {
         return;
       }
 
-      if (isComposite(token)) {
-        const tokenValueIsArray = Array.isArray(token.value);
+      if (!isCompositeToken(token)) {
+        return;
+      }
 
-        // Create a new "value" property where each relevant value is an alias
-        // to one of the new tokens we will be creating next.
-        const tokenValueWithAliases = tokenValueIsArray ? Array.from({ length: token.value.length }, Object) : {};
+      const tokenValueIsArray = Array.isArray(token.value);
 
-        // For every value property, create a new token.
-        const childTokens = {};
+      // Create a new "value" object where each property is an alias
+      // to one of the new tokens we will be creating next.
+      const tokenValueWithAliases = tokenValueIsArray ? Array.from({ length: token.value.length }, Object) : {};
 
-        for (const [key, value, step] of getCompositeValues(token.value)) {
-          const childTokenName = `${tokenValueIsArray ? `${step + 1}-` : ""}${key}`;
+      // For every value object property, create a new token.
+      const childTokens = {};
 
-          childTokens[childTokenName] = {
-            value,
-            $type: w3cCompositeTokenSpec[token.$type][key],
-            intermediate: true,
-          };
+      for (const [key, value, step] of getCompositeValues(token.value)) {
+        const childTokenName = `${tokenValueIsArray ? `${step + 1}-` : ""}${key}`;
 
-          const tokenAlias = `{${[...path, childTokenName].join(".")}}`;
-
-          if (tokenValueIsArray) {
-            tokenValueWithAliases[step][key] = tokenAlias;
-          } else {
-            tokenValueWithAliases[key] = tokenAlias;
-          }
-        }
-
-        // Create a new composite token, copying over all properties from the original
-        // and setting its child values to aliases.
-        childTokens["@"] = {
-          ...token,
-          value: tokenValueWithAliases,
+        childTokens[childTokenName] = {
+          value,
+          $type: compositeTokenTypeMap[token.$type][key],
+          // Not sure how useful "intermediate" is. Added it to call out which
+          // tokens are original versus created by this parser. Maybe use the
+          // property to filter out tokens from the final formats?
+          intermediate: true,
         };
 
-        // Remove all properties from the original token
-        Object.keys(token).forEach((key) => delete token[key]);
+        const tokenAlias = `{${[...path, childTokenName].join(".")}}`;
 
-        // Repopulate the original token
-        Object.keys(childTokens).forEach((key) => (token[key] = { ...childTokens[key] }));
+        if (tokenValueIsArray) {
+          tokenValueWithAliases[step][key] = tokenAlias;
+        } else {
+          tokenValueWithAliases[key] = tokenAlias;
+        }
       }
+
+      // Create a new composite token, copying over all properties from the original
+      // and setting its child values to aliases.
+      childTokens["@"] = {
+        ...token,
+        value: tokenValueWithAliases,
+      };
+
+      // Remove all properties from the original token
+      Object.keys(token).forEach((key) => delete token[key]);
+
+      // Repopulate the original token
+      Object.keys(childTokens).forEach((key) => (token[key] = { ...childTokens[key] }));
     }
 
     walk(tokens);
-    // console.log("final tokens...", tokens.composite.gradient["blue-to-red"]);
+
     return tokens;
   },
 };

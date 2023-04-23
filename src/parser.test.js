@@ -28,9 +28,9 @@ describe("parser", () => {
           $type: "border",
           $description: "Default border",
           $value: {
-            width: "1px",
-            style: "solid",
             color: "rebeccapurple",
+            style: "solid",
+            width: "1px",
           },
           extra: "extra",
         },
@@ -40,9 +40,9 @@ describe("parser", () => {
     const dictionary = w3cParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.border.thin).toStrictEqual({
-      width: {
-        $type: "dimension",
-        value: "1px",
+      color: {
+        $type: "color",
+        value: "rebeccapurple",
         intermediate: true,
       },
       style: {
@@ -50,9 +50,9 @@ describe("parser", () => {
         value: "solid",
         intermediate: true,
       },
-      color: {
-        $type: "color",
-        value: "rebeccapurple",
+      width: {
+        $type: "dimension",
+        value: "1px",
         intermediate: true,
       },
       "@": {
@@ -68,7 +68,67 @@ describe("parser", () => {
     });
   });
 
-  test.todo("migrates a composite 'gradient' token");
+  test("migrates a composite 'gradient' token", () => {
+    const raw = JSON.stringify({
+      gradient: {
+        "blue-to-red": {
+          $type: "gradient",
+          $description: "Red-to-green gradient",
+          $value: [
+            {
+              color: "#0000ff",
+              position: 0.6,
+            },
+            {
+              color: "#ff0000",
+              position: 1,
+            },
+          ],
+          extra: "extra",
+        },
+      },
+    });
+
+    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+
+    expect(dictionary.gradient["blue-to-red"]).toStrictEqual({
+      "1-color": {
+        $type: "color",
+        value: "#0000ff",
+        intermediate: true,
+      },
+      "1-position": {
+        $type: undefined,
+        value: 0.6,
+        intermediate: true,
+      },
+      "2-color": {
+        $type: "color",
+        value: "#ff0000",
+        intermediate: true,
+      },
+      "2-position": {
+        $type: undefined,
+        value: 1,
+        intermediate: true,
+      },
+      "@": {
+        $type: "gradient",
+        comment: "Red-to-green gradient",
+        value: [
+          {
+            color: "{gradient.blue-to-red.1-color}",
+            position: "{gradient.blue-to-red.1-position}",
+          },
+          {
+            color: "{gradient.blue-to-red.2-color}",
+            position: "{gradient.blue-to-red.2-position}",
+          },
+        ],
+        extra: "extra",
+      },
+    });
+  });
 
   test("migrates a composite 'shadow' token", () => {
     const raw = JSON.stringify({
@@ -77,11 +137,11 @@ describe("parser", () => {
           $type: "shadow",
           $description: "Shadow for cards",
           $value: {
+            blur: "1.5",
+            color: "#00000088",
             offsetX: "0.5",
             offsetY: "0.5",
-            blur: "1.5",
             spread: "0",
-            color: "#00000088",
           },
           extra: "extra",
         },
@@ -91,6 +151,16 @@ describe("parser", () => {
     const dictionary = w3cParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.shadow.card).toStrictEqual({
+      blur: {
+        $type: "dimension",
+        value: "1.5",
+        intermediate: true,
+      },
+      color: {
+        $type: "color",
+        value: "#00000088",
+        intermediate: true,
+      },
       offsetX: {
         $type: "dimension",
         value: "0.5",
@@ -101,19 +171,9 @@ describe("parser", () => {
         value: "0.5",
         intermediate: true,
       },
-      blur: {
-        $type: "dimension",
-        value: "1.5",
-        intermediate: true,
-      },
       spread: {
         $type: "dimension",
         value: "0",
-        intermediate: true,
-      },
-      color: {
-        $type: "color",
-        value: "#00000088",
         intermediate: true,
       },
       "@": {
@@ -133,7 +193,111 @@ describe("parser", () => {
 
   test.todo("migrates a composite 'strokeStyle' token");
 
-  test.todo("migrates a composite 'transition' token");
+  test("migrates a composite 'transition' token", () => {
+    const raw = JSON.stringify({
+      transition: {
+        emphasis: {
+          $type: "transition",
+          $description: "Emphatic transition",
+          $value: {
+            delay: "0ms",
+            duration: "200ms",
+            timingFunction: [0.5, 0, 1, 1],
+          },
+          extra: "extra",
+        },
+      },
+    });
 
-  test.todo("migrates a composite typography token");
+    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+
+    expect(dictionary.transition.emphasis).toStrictEqual({
+      delay: {
+        $type: "duration",
+        value: "0ms",
+        intermediate: true,
+      },
+      duration: {
+        $type: "duration",
+        value: "200ms",
+        intermediate: true,
+      },
+      timingFunction: {
+        $type: "cubicBezier",
+        value: [0.5, 0, 1, 1],
+        intermediate: true,
+      },
+      "@": {
+        $type: "transition",
+        comment: "Emphatic transition",
+        value: {
+          delay: "{transition.emphasis.delay}",
+          duration: "{transition.emphasis.duration}",
+          timingFunction: "{transition.emphasis.timingFunction}",
+        },
+        extra: "extra",
+      },
+    });
+  });
+
+  test("migrates a composite typography token", () => {
+    const raw = JSON.stringify({
+      typography: {
+        body: {
+          $type: "typography",
+          $description: "Body Default",
+          $value: {
+            fontFamily: "Roboto",
+            fontSize: "16px",
+            fontWeight: "normal",
+            letterSpacing: "-1",
+            lineHeight: "1.2",
+          },
+          extra: "extra",
+        },
+      },
+    });
+
+    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+
+    expect(dictionary.typography.body).toStrictEqual({
+      fontFamily: {
+        $type: "fontFamily",
+        value: "Roboto",
+        intermediate: true,
+      },
+      fontSize: {
+        $type: "dimension",
+        value: "16px",
+        intermediate: true,
+      },
+      fontWeight: {
+        $type: "fontWeight",
+        value: "normal",
+        intermediate: true,
+      },
+      letterSpacing: {
+        $type: "dimension",
+        value: "-1",
+        intermediate: true,
+      },
+      lineHeight: {
+        $type: "number",
+        value: "1.2",
+        intermediate: true,
+      },
+      "@": {
+        $type: "typography",
+        comment: "Body Default",
+        value: {
+          fontFamily: "{typography.body.fontFamily}",
+          fontSize: "{typography.body.fontSize}",
+          fontWeight: "{typography.body.fontWeight}",
+          letterSpacing: "{typography.body.letterSpacing}",
+          lineHeight: "{typography.body.lineHeight}",
+        },
+        extra: "extra",
+      },
+    });
+  });
 });
