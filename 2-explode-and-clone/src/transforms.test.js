@@ -11,7 +11,7 @@ const {
   typeFontFamily,
 } = require("./transforms");
 
-describe("w3c/attribute/cti", () => {
+describe("dtcg/attribute/cti", () => {
   test.each([
     ["color", "color"],
     ["dimension", "size"],
@@ -51,7 +51,7 @@ describe("w3c/attribute/cti", () => {
   });
 });
 
-describe("w3c/composite/css/border", () => {
+describe("dtcg/composite/css/border", () => {
   test.each([
     [{ style: "solid" }, "solid"],
     [{ width: "1px", style: "solid" }, "1px solid"],
@@ -63,7 +63,7 @@ describe("w3c/composite/css/border", () => {
   });
 });
 
-describe("w3c/composite/css/gradient", () => {
+describe("dtcg/composite/css/gradient", () => {
   test.each([
     [
       [
@@ -78,7 +78,7 @@ describe("w3c/composite/css/gradient", () => {
   });
 });
 
-describe("w3c/composite/css/shadow", () => {
+describe("dtcg/composite/css/shadow", () => {
   test.each([
     [{ offsetX: "60px", offsetY: "-16px", color: "teal" }, "60px -16px teal"],
     [{ offsetX: "10px", offsetY: "5px", blur: "5px", color: "black" }, "10px 5px 5px black"],
@@ -94,7 +94,7 @@ describe("w3c/composite/css/shadow", () => {
 
 // TODO strokeStyle
 
-describe("w3c/composite/css/transition", () => {
+describe("dtcg/composite/css/transition", () => {
   test.each([
     [{ duration: "4s" }, "4s"],
     [{ duration: "4s", delay: "1s" }, "4s 1s"],
@@ -106,7 +106,7 @@ describe("w3c/composite/css/transition", () => {
   });
 });
 
-describe("w3c/composite/css/typography", () => {
+describe("dtcg/composite/css/typography", () => {
   test.each([
     [{ fontSize: "12px", fontFamily: "system-ui, Roboto" }, "12px system-ui, Roboto"],
     [{ fontWeight: "bold", fontSize: "12px", fontFamily: "system-ui, Roboto" }, "bold 12px system-ui, Roboto"],
@@ -120,14 +120,14 @@ describe("w3c/composite/css/typography", () => {
   });
 });
 
-describe("w3c/type/css/cubicBezier", () => {
+describe("dtcg/type/css/cubicBezier", () => {
   test("transforms", () => {
     const token = { value: ["0.42", "0.0", "1.0", "1.0"] };
     expect(typeCubicBezier.transformer(token)).toBe("cubic-bezier(0.42, 0.0, 1.0, 1.0)");
   });
 });
 
-describe("w3c/type/css/fontFamily", () => {
+describe("dtcg/type/css/fontFamily", () => {
   test("transforms", () => {
     const token = { value: ["system-ui", "Comic Sans MS"] };
     expect(typeFontFamily.transformer(token)).toBe('system-ui, "Comic Sans MS"');

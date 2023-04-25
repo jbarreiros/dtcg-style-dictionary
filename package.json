@@ -1,8 +1,10 @@
 {
-  "name": "style-dictionary-with-w3c-design-tokens",
+  "name": "style-dictionary-with-dtcg-design-tokens",
   "version": "0.0.0",
   "scripts": {
-    "build": "style-dictionary build --config ./sd.config.js",
+    "build:1": "style-dictionary build --config ./1-explode-only/sd.config.js",
+    "build:2": "style-dictionary build --config ./2-explode-and-clone/sd.config.js",
+    "clean": "rm -r 1-explode-only/build/ 2-explode-and-clone/build/",
     "test": "jest"
   },
   "devDependencies": {

@@ -1,49 +1,28 @@
 const SD = require("style-dictionary");
-const { w3cParser } = require("./src/parser");
-const {
-  attributeCti,
-  compositeBorder,
-  compositeGradient,
-  compositeShadow,
-  compositeTransition,
-  compositeTypography,
-  typeCubicBezier,
-  typeFontFamily,
-} = require("./src/transforms");
-
-SD.registerTransform(attributeCti);
-SD.registerTransform(compositeBorder);
-SD.registerTransform(compositeGradient);
-SD.registerTransform(compositeShadow);
-SD.registerTransform(compositeTransition);
-SD.registerTransform(compositeTypography);
-SD.registerTransform(typeCubicBezier);
-SD.registerTransform(typeFontFamily);
-SD.registerParser(w3cParser);
+const { dtcgParser } = require("./src/parser");
+const { attributeCti, typeCubicBezier, typeFontFamily } = require("./src/transforms");
 
 ["css", "js", "scss"].forEach((name) => {
-  // Replace 'attribute/cti' with custom
+  // Replace "attribute/cti" with custom
   const attributeCtiTransformIndex = SD.transformGroup[name].findIndex((v) => v === "attribute/cti");
-  SD.transformGroup[name].splice(attributeCtiTransformIndex, 1, "w3c/attribute/cti");
+  SD.transformGroup[name].splice(attributeCtiTransformIndex, 1, "dtcg/attribute/cti");
 
-  SD.transformGroup[name] = [
-    ...SD.transformGroup[name],
-    "w3c/composite/css/border",
-    "w3c/composite/css/gradient",
-    "w3c/composite/css/shadow",
-    "w3c/composite/css/transition",
-    "w3c/composite/css/typography",
-    "w3c/type/css/cubicBezier",
-    "w3c/type/css/fontFamily",
-  ];
+  // Append custom transforms
+  SD.transformGroup[name] = [...SD.transformGroup[name], "dtcg/type/css/cubicBezier", "dtcg/type/css/fontFamily"];
 });
 
 module.exports = {
-  source: ["tokens/tokens.json"],
+  source: [`${__dirname}/tokens/tokens.json`],
+  parsers: [dtcgParser],
+  transform: {
+    [attributeCti.name]: attributeCti,
+    [typeCubicBezier.name]: typeCubicBezier,
+    [typeFontFamily.name]: typeFontFamily,
+  },
   platforms: {
     css: {
       transformGroup: "css",
-      buildPath: "build/css/",
+      buildPath: `${__dirname}/build/css/`,
       files: [
         {
           destination: "variables.css",
@@ -53,7 +32,7 @@ module.exports = {
     },
     scss: {
       transformGroup: "scss",
-      buildPath: "build/scss/",
+      buildPath: `${__dirname}/build/scss/`,
       files: [
         {
           destination: "_variables.scss",
@@ -71,7 +50,7 @@ module.exports = {
     },
     js: {
       transformGroup: "js",
-      buildPath: "build/js/",
+      buildPath: `${__dirname}/build/js/`,
       files: [
         {
           destination: "module.js",
@@ -90,7 +69,7 @@ module.exports = {
     // TODO ts
     json: {
       transformGroup: "js",
-      buildPath: "build/json/",
+      buildPath: `${__dirname}/build/json/`,
       files: [
         {
           destination: "variables.json",

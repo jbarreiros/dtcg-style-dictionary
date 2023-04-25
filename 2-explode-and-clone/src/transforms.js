@@ -3,7 +3,7 @@
  */
 exports.attributeCti = {
   type: "attribute",
-  name: "w3c/attribute/cti",
+  name: "dtcg/attribute/cti",
   transformer: (token) => {
     const { attributes = {} } = token;
 
@@ -45,7 +45,7 @@ exports.attributeCti = {
 exports.compositeBorder = {
   type: "value",
   transitive: true,
-  name: "w3c/composite/css/border",
+  name: "dtcg/composite/css/border",
   matcher: ({ $type, value }) => $type === "border" && typeof value === "object",
   transformer: ({ value }) => [value.width, value.style, value.color].filter(Boolean).join(" "),
 };
@@ -55,7 +55,7 @@ exports.compositeBorder = {
 exports.compositeGradient = {
   type: "value",
   transitive: true,
-  name: "w3c/composite/css/gradient",
+  name: "dtcg/composite/css/gradient",
   matcher: ({ $type, value }) => $type === "gradient" && Array.isArray(value),
   transformer: ({ value }) => value.map(({ color, position }) => `${color} ${(position * 100).toFixed(0)}%`).join(", "),
 };
@@ -65,7 +65,7 @@ exports.compositeGradient = {
 exports.compositeShadow = {
   type: "value",
   transitive: true,
-  name: "w3c/composite/css/shadow",
+  name: "dtcg/composite/css/shadow",
   matcher: ({ $type, value }) => $type === "shadow" && typeof value === "object",
   transformer: ({ value }) =>
     [value.offsetX, value.offsetY, value.blur, value.spread, value.color].filter(Boolean).join(" "),
@@ -80,7 +80,7 @@ exports.compositeStrokeStyle = {
 exports.compositeTransition = {
   type: "value",
   transitive: true,
-  name: "w3c/composite/css/transition",
+  name: "dtcg/composite/css/transition",
   matcher: ({ $type, value }) => $type === "transition" && typeof value === "object",
   transformer: ({ value }) => [value.duration, value.timingFunction, value.delay].filter(Boolean).join(" "),
 };
@@ -90,7 +90,7 @@ exports.compositeTransition = {
 exports.compositeTypography = {
   type: "value",
   transitive: true,
-  name: "w3c/composite/css/typography",
+  name: "dtcg/composite/css/typography",
   matcher: ({ $type, value }) => $type === "typography" && typeof value === "object",
   transformer: ({ value }) =>
     [value.fontWeight, `${value.fontSize}${value.lineHeight ? `/${value.lineHeight}` : ""}`, value.fontFamily]
@@ -113,7 +113,7 @@ exports.compositeTypography = {
 exports.typeCubicBezier = {
   type: "value",
   transitive: true,
-  name: "w3c/type/css/cubicBezier",
+  name: "dtcg/type/css/cubicBezier",
   matcher: ({ $type, value }) => $type === "cubicBezier" && Array.isArray(value),
   transformer: ({ value }) => `cubic-bezier(${value.join(", ")})`,
 };
@@ -122,7 +122,7 @@ exports.typeCubicBezier = {
 exports.typeFontFamily = {
   type: "value",
   transitive: true,
-  name: "w3c/type/css/fontFamily",
+  name: "dtcg/type/css/fontFamily",
   matcher: ({ $type, value }) => $type === "fontFamily" && Array.isArray(value),
   transformer: ({ value }) => {
     const families = value.map((family) => (/\s/g.test(family) ? `"${family}"` : family));

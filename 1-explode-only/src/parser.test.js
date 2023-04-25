@@ -1,4 +1,4 @@
-const { w3cParser } = require("./parser");
+const { dtcgParser } = require("./parser");
 
 describe("parser", () => {
   test("renames properties $value, $description", () => {
@@ -14,11 +14,11 @@ describe("parser", () => {
       },
     };
 
-    expect(w3cParser.parse({ filePath: "", contents: raw })).toEqual(expected);
+    expect(dtcgParser.parse({ filePath: "", contents: raw })).toEqual(expected);
   });
 
   test("does not error if JSON is empty", () => {
-    expect(w3cParser.parse({ filePath: "", contents: "" })).toEqual({});
+    expect(dtcgParser.parse({ filePath: "", contents: "" })).toEqual({});
   });
 
   test("migrates a composite 'border' token", () => {
@@ -32,38 +32,26 @@ describe("parser", () => {
             style: "solid",
             width: "1px",
           },
-          extra: "extra",
         },
       },
     });
 
-    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.border.thin).toStrictEqual({
+      $type: "border",
+      comment: "Default border",
       color: {
         $type: "color",
         value: "rebeccapurple",
-        intermediate: true,
       },
       style: {
         $type: "strokeStyle",
         value: "solid",
-        intermediate: true,
       },
       width: {
         $type: "dimension",
         value: "1px",
-        intermediate: true,
-      },
-      "@": {
-        $type: "border",
-        comment: "Default border",
-        value: {
-          width: "{border.thin.width}",
-          style: "{border.thin.style}",
-          color: "{border.thin.color}",
-        },
-        extra: "extra",
       },
     });
   });
@@ -84,48 +72,30 @@ describe("parser", () => {
               position: 1,
             },
           ],
-          extra: "extra",
         },
       },
     });
 
-    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.gradient["blue-to-red"]).toStrictEqual({
+      $type: "gradient",
+      comment: "Red-to-green gradient",
       "1-color": {
         $type: "color",
         value: "#0000ff",
-        intermediate: true,
       },
       "1-position": {
         $type: undefined,
         value: 0.6,
-        intermediate: true,
       },
       "2-color": {
         $type: "color",
         value: "#ff0000",
-        intermediate: true,
       },
       "2-position": {
         $type: undefined,
         value: 1,
-        intermediate: true,
-      },
-      "@": {
-        $type: "gradient",
-        comment: "Red-to-green gradient",
-        value: [
-          {
-            color: "{gradient.blue-to-red.1-color}",
-            position: "{gradient.blue-to-red.1-position}",
-          },
-          {
-            color: "{gradient.blue-to-red.2-color}",
-            position: "{gradient.blue-to-red.2-position}",
-          },
-        ],
-        extra: "extra",
       },
     });
   });
@@ -143,50 +113,34 @@ describe("parser", () => {
             offsetY: "0.5",
             spread: "0",
           },
-          extra: "extra",
         },
       },
     });
 
-    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.shadow.card).toStrictEqual({
+      $type: "shadow",
+      comment: "Shadow for cards",
       blur: {
         $type: "dimension",
         value: "1.5",
-        intermediate: true,
       },
       color: {
         $type: "color",
         value: "#00000088",
-        intermediate: true,
       },
       offsetX: {
         $type: "dimension",
         value: "0.5",
-        intermediate: true,
       },
       offsetY: {
         $type: "dimension",
         value: "0.5",
-        intermediate: true,
       },
       spread: {
         $type: "dimension",
         value: "0",
-        intermediate: true,
-      },
-      "@": {
-        $type: "shadow",
-        comment: "Shadow for cards",
-        value: {
-          offsetX: "{shadow.card.offsetX}",
-          offsetY: "{shadow.card.offsetY}",
-          blur: "{shadow.card.blur}",
-          spread: "{shadow.card.spread}",
-          color: "{shadow.card.color}",
-        },
-        extra: "extra",
       },
     });
   });
@@ -204,38 +158,26 @@ describe("parser", () => {
             duration: "200ms",
             timingFunction: [0.5, 0, 1, 1],
           },
-          extra: "extra",
         },
       },
     });
 
-    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.transition.emphasis).toStrictEqual({
+      $type: "transition",
+      comment: "Emphatic transition",
       delay: {
         $type: "duration",
         value: "0ms",
-        intermediate: true,
       },
       duration: {
         $type: "duration",
         value: "200ms",
-        intermediate: true,
       },
       timingFunction: {
         $type: "cubicBezier",
         value: [0.5, 0, 1, 1],
-        intermediate: true,
-      },
-      "@": {
-        $type: "transition",
-        comment: "Emphatic transition",
-        value: {
-          delay: "{transition.emphasis.delay}",
-          duration: "{transition.emphasis.duration}",
-          timingFunction: "{transition.emphasis.timingFunction}",
-        },
-        extra: "extra",
       },
     });
   });
@@ -253,50 +195,34 @@ describe("parser", () => {
             letterSpacing: "-1",
             lineHeight: "1.2",
           },
-          extra: "extra",
         },
       },
     });
 
-    const dictionary = w3cParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
 
     expect(dictionary.typography.body).toStrictEqual({
+      $type: "typography",
+      comment: "Body Default",
       fontFamily: {
         $type: "fontFamily",
         value: "Roboto",
-        intermediate: true,
       },
       fontSize: {
         $type: "dimension",
         value: "16px",
-        intermediate: true,
       },
       fontWeight: {
         $type: "fontWeight",
         value: "normal",
-        intermediate: true,
       },
       letterSpacing: {
         $type: "dimension",
         value: "-1",
-        intermediate: true,
       },
       lineHeight: {
         $type: "number",
         value: "1.2",
-        intermediate: true,
-      },
-      "@": {
-        $type: "typography",
-        comment: "Body Default",
-        value: {
-          fontFamily: "{typography.body.fontFamily}",
-          fontSize: "{typography.body.fontSize}",
-          fontWeight: "{typography.body.fontWeight}",
-          letterSpacing: "{typography.body.letterSpacing}",
-          lineHeight: "{typography.body.lineHeight}",
-        },
-        extra: "extra",
       },
     });
   });

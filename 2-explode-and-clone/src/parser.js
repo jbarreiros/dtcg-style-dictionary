@@ -70,8 +70,8 @@ function* getCompositeValues(tokenValue, step = undefined) {
  * - $value -> value
  * - $description -> comment
  *
- * Expand composite tokens into individual tokens, and update its child values
- * to use aliases:
+ * For each composite token, change it to a group token, expand its $value
+ * into new tokens, and generate a new composite token:
  * {
  *   "border": {
  *     "thin": {
@@ -90,7 +90,7 @@ function* getCompositeValues(tokenValue, step = undefined) {
  *     "thin": {
  *       "width": { "value": "1px", "$type": "dimension" },
  *       "color": { "value": "black", "$type": "color" },
- *       "@"": {
+ *       "@": {
  *         "$type": "border",
  *         "comment": "Thin border",
  *         "value": {
@@ -107,7 +107,7 @@ function* getCompositeValues(tokenValue, step = undefined) {
  * - $value is an array, e.g. `[{a:1, ...}, {a:2, ...}]`
  * - Within $value, there are no nesting objects or arrays.
  */
-exports.w3cParser = {
+exports.dtcgParser = {
   pattern: /\.json|\.tokens\.json|\.tokens$/,
   parse: ({ filePath, contents }) => {
     // Rename "$" property names to their equivalent Style Dictionary names
