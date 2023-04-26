@@ -25,7 +25,7 @@ npm run build:1
 
 Notes:
 
-- Tokens are not organized using CTI.
+- Tokens do not need to be organized using CTI.
 - `parser.js`
   <!-- prettier-ignore -->
   - Renames `$value` to `value`, and `$description` to `comment`.
@@ -67,7 +67,7 @@ Notes:
 Limitations:
 
 - Generates a lot of extra tokens.
-- Composite tokens cannot be referenced by alias (because it was discarded).
+- Composite tokens cannot be referenced by alias (because they were discarded).
 - If a composite token has a `$description` or other custom properties, they will be inaccessible to transforms and formats.
 
 ### Sample 2
