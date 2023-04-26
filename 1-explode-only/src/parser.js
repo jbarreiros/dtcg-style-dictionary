@@ -110,16 +110,11 @@ exports.dtcgParser = {
     // Convert JSON string to object
     const tokens = JSON.parse(preparedContent);
 
-    // Track where we are in the tree.
-    const path = [];
-
     // Recursive function to iterate over all tokens
     function walk(token, key) {
       if (isTokenGroup(token)) {
         for (const [nextKey, nextToken] of Object.entries(token)) {
-          path.push(nextKey);
           walk(nextToken, nextKey);
-          path.pop();
         }
 
         return;
