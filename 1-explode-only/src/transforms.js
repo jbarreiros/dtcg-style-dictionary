@@ -25,8 +25,9 @@ exports.attributeCti = {
       case "fontFamily":
         attributes.category = "font";
         break;
-      case "fontWeight":
       case "cubicBezier":
+      case "fontWeight":
+      case "number":
       default:
         // Nothing to remap
         break;
@@ -39,12 +40,16 @@ exports.attributeCti = {
 /**
  * The following transforms are for handling token $type values.
  *
- * The following types do not need special handling:
- * - color
- * - dimension
- * - duration
- * - fontWeight
- * - number
+ * The following types do not need special handling because "dtcg/attribute/cti"
+ * has mapped them to Style Dictionary aware types:
+ *
+ * DTCG Type  | SD type
+ * --------------------
+ * color      | color
+ * dimension  | size
+ * duration   | time
+ * fontWeight | --
+ * number     | --
  */
 
 // value: [P1x, P1y, P2x, P2y] (x = [0,1], y = [-∞,∞])

@@ -14,11 +14,11 @@ describe("parser", () => {
       },
     };
 
-    expect(dtcgParser.parse({ filePath: "", contents: raw })).toEqual(expected);
+    expect(dtcgParser.parse({ contents: raw })).toEqual(expected);
   });
 
   test("does not error if JSON is empty", () => {
-    expect(dtcgParser.parse({ filePath: "", contents: "" })).toEqual({});
+    expect(dtcgParser.parse({ contents: "" })).toEqual({});
   });
 
   test("migrates a composite 'border' token", () => {
@@ -37,7 +37,7 @@ describe("parser", () => {
       },
     });
 
-    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ contents: raw });
 
     expect(dictionary.border.thin).toStrictEqual({
       color: {
@@ -89,7 +89,7 @@ describe("parser", () => {
       },
     });
 
-    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ contents: raw });
 
     expect(dictionary.gradient["blue-to-red"]).toStrictEqual({
       "1-color": {
@@ -148,7 +148,7 @@ describe("parser", () => {
       },
     });
 
-    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ contents: raw });
 
     expect(dictionary.shadow.card).toStrictEqual({
       blur: {
@@ -209,7 +209,7 @@ describe("parser", () => {
       },
     });
 
-    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ contents: raw });
 
     expect(dictionary.transition.emphasis).toStrictEqual({
       delay: {
@@ -258,7 +258,7 @@ describe("parser", () => {
       },
     });
 
-    const dictionary = dtcgParser.parse({ filePath: "", contents: raw });
+    const dictionary = dtcgParser.parse({ contents: raw });
 
     expect(dictionary.typography.body).toStrictEqual({
       fontFamily: {

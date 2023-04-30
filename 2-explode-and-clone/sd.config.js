@@ -10,6 +10,7 @@ const {
   compositeTransition,
   compositeTypography,
 } = require("./src/transforms");
+const { cssUtilityClass } = require("./src/formats");
 
 // Adjust the default transform groups
 ["css", "js", "scss"].forEach((name) => {
@@ -20,7 +21,7 @@ const {
   // Append custom transforms
   SD.transformGroup[name] = [
     ...SD.transformGroup[name],
-    "dtcg/composite/css/border",
+    // "dtcg/composite/css/border",
     "dtcg/composite/css/gradient",
     "dtcg/composite/css/shadow",
     "dtcg/composite/css/transition",
@@ -35,13 +36,16 @@ module.exports = {
   parsers: [dtcgParser],
   transform: {
     [attributeCti.name]: attributeCti,
-    [compositeBorder.name]: compositeBorder,
+    // [compositeBorder.name]: compositeBorder,
     [compositeGradient.name]: compositeGradient,
     [compositeShadow.name]: compositeShadow,
     [compositeTransition.name]: compositeTransition,
     [compositeTypography.name]: compositeTypography,
     [typeCubicBezier.name]: typeCubicBezier,
     [typeFontFamily.name]: typeFontFamily,
+  },
+  format: {
+    [cssUtilityClass.name]: cssUtilityClass.formatter,
   },
   platforms: {
     css: {
@@ -51,6 +55,10 @@ module.exports = {
         {
           destination: "variables.css",
           format: "css/variables",
+        },
+        {
+          destination: "utilities.css",
+          format: "css/utility-class",
         },
       ],
     },

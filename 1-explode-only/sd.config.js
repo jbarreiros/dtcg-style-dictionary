@@ -1,6 +1,7 @@
 const SD = require("style-dictionary");
 const { dtcgParser } = require("./src/parser");
 const { attributeCti, typeCubicBezier, typeFontFamily } = require("./src/transforms");
+const { cssUtilityClass } = require("./src/formats");
 
 ["css", "js", "scss"].forEach((name) => {
   // Replace "attribute/cti" with custom
@@ -19,6 +20,9 @@ module.exports = {
     [typeCubicBezier.name]: typeCubicBezier,
     [typeFontFamily.name]: typeFontFamily,
   },
+  format: {
+    [cssUtilityClass.name]: cssUtilityClass.formatter,
+  },
   platforms: {
     css: {
       transformGroup: "css",
@@ -27,6 +31,10 @@ module.exports = {
         {
           destination: "variables.css",
           format: "css/variables",
+        },
+        {
+          destination: "utilities.css",
+          format: "css/utility-class",
         },
       ],
     },

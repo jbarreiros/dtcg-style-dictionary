@@ -101,7 +101,7 @@ function* getCompositeValues(tokenValue, step = undefined) {
  */
 exports.dtcgParser = {
   pattern: /\.json|\.tokens\.json|\.tokens$/,
-  parse: ({ filePath, contents }) => {
+  parse: ({ contents }) => {
     // Rename "$" property names to their equivalent Style Dictionary names
     const preparedContent = (contents || "{}")
       .replace(/"\$?value"\s*:/g, '"value":')
