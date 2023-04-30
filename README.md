@@ -25,7 +25,7 @@ npm run build:1
 
 Notes:
 
-- Tokens do not need to be organized using CTI.
+- Tokens do not need to be organized using [CTI](https://amzn.github.io/style-dictionary/#/tokens?id=category-type-item).
 - `parser.js`
   <!-- prettier-ignore -->
   - Renames `$value` to `value`, and `$description` to `comment`.
@@ -61,14 +61,14 @@ Notes:
     </details>
 
 - `sd.config.js`
-  - Replaces transform `attrbute/cti` with `dtcg/attribute/cti`, which maps some DTCG types to Style Dictionary types. Doing so allows for the continued use of Style Dictionary's standard transforms.
-  - Registers new _value_ transforms for DTCG types `cubicBezier` and `fontFamily`.
+  - Replaces transform `attrbute/cti` with `dtcg/attribute/cti`, which maps DTCG `$types` (color, dimension, etc) to Style Dictionary transform types (color, size, etc.). Doing so allows for the continued use of Style Dictionary's standard transforms.
+  - Registers new transforms for DTCG `$types` `cubicBezier` and `fontFamily`.
 
 Limitations:
 
 - Generates a lot of extra tokens.
-- Composite tokens cannot be referenced by alias (because they were discarded).
-- If a composite token has a `$description` or other custom properties, they will be inaccessible to transforms and formats.
+- Composite tokens cannot be referenced by alias (because they are discarded).
+- If a composite token had a `$description` or other custom properties, they will be inaccessible to transforms and formats.
 
 ### Sample 2
 
@@ -91,7 +91,8 @@ Notes:
 - This sample is essentially the same as sample 1, except...
 - `parser.js`
   <!-- prettier-ignore -->
-  - When a composite token is being processed, it is not discarded. Instead, a new version of the composite token is built, replacing its `$value` properties with aliases to the individual tokens.
+  - When a composite token is being split up, it is not discarded. Instead, a new version of the composite token is built, replacing its `$value` properties with aliases to the individual tokens.
+
     <details><summary>Example</summary>
 
     ```json
@@ -132,14 +133,13 @@ Notes:
     </details>
 
 - `sd.config.js`
-  - Registers new transforms for each DTCG composite token type, `border`, `gradient`, `shadow`, `transition`, and `typography`.
+  - Registers new transforms for each DTCG composite token `$type`: `border`, `gradient`, `shadow`, `transition`, and `typography`.
 
 Limitations:
 
 - Same limitations as sample 1, as well as...
 - Aliasing a composite token references the final transformed value, not the original `$value` object/array.
-  - Note, this might actually be the correct behavior, and therefore, not a limitation. The spec is a little unclear.
 
 ## Improvements
 
-- Per the spec, if `$type` is set on a group token, that `$type` should [apply to each of its children](https://tr.designtokens.org/format/#type-1). The parser does not currently implement that. It should be doable.
+- Per the spec, if `$type` is set on a group token, that `$type` should [apply to each of its children](https://tr.designtokens.org/format/#type-1). These example parsers does not currently implement that. It should be doable.
