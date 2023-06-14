@@ -10,7 +10,6 @@ const {
   compositeTransition,
   compositeTypography,
 } = require("./src/transforms");
-const { cssUtilityClass } = require("./src/formats");
 
 // Adjust the default transform groups
 ["css", "js", "scss"].forEach((name) => {
@@ -44,9 +43,6 @@ module.exports = {
     [typeCubicBezier.name]: typeCubicBezier,
     [typeFontFamily.name]: typeFontFamily,
   },
-  format: {
-    [cssUtilityClass.name]: cssUtilityClass.formatter,
-  },
   platforms: {
     css: {
       transformGroup: "css",
@@ -55,10 +51,6 @@ module.exports = {
         {
           destination: "variables.css",
           format: "css/variables",
-        },
-        {
-          destination: "utilities.css",
-          format: "css/utility-class",
         },
       ],
     },

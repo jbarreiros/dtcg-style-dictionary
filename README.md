@@ -68,7 +68,7 @@ Limitations:
 
 - Generates a lot of extra tokens.
 - Composite tokens cannot be referenced by alias (because they are discarded).
-- If a composite token had a `$description` or other custom properties, they will be inaccessible to transforms and formats.
+- If a composite token has a `$description` or other custom properties, they will be inaccessible to transforms and formats.
 
 ### Sample 2
 
@@ -142,4 +142,4 @@ Limitations:
 
 ## Improvements
 
-- Per the spec, if `$type` is set on a group token, that `$type` should [apply to each of its children](https://tr.designtokens.org/format/#type-1). These example parsers does not currently implement that. It should be doable.
+- Per the spec, if `$type` is set on a group token, that `$type` should [apply to each of its children](https://tr.designtokens.org/format/#type-1). These example parsers do not currently implement that. It should be doable.
